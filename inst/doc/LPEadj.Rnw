@@ -1,0 +1,324 @@
+%\VignetteIndexEntry{LPEadj test for microarray data with small number of replicates}
+%\VignetteKeywords{Local pooled error, replicates}
+%\VignetteDepends{LPEadj}
+%\VignettePackage{LPEadj}
+
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{isorot}
+\usepackage{epsfig}
+\usepackage{fullpage} % standard 1 inch margins 
+
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\textit{#1}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\email}[1]{\texttt{#1}}
+
+%%% Hyperlinks for ``PDF Latex'' :
+\ifx\pdfoutput\undefined%%--- usual ``latex'' :
+  %% Stuff w/out hyperref
+\else%%---------------------- `` pdflatex '' : -- still gives funny errors
+  \RequirePackage{hyperref}
+  %% The following is R's share/texmf/hyperref.cfg :
+  %% Stuff __with__ hyperref :
+  \hypersetup{%
+    %default: hyperindex,%
+    colorlinks,%
+    %default: pagebackref,%
+    linktocpage,%
+    %%plainpages=false,%
+    linkcolor=Green,%
+    citecolor=Blue,%
+    urlcolor=Red,%
+    pdfstartview=Fit,%
+    pdfview={XYZ null null null}%
+    }
+  \RequirePackage{color}
+  \definecolor{Blue}{rgb}{0,0,0.8}
+  \definecolor{Green}{rgb}{0.1,0.75,0.1}
+  \definecolor{Red}{rgb}{0.7,0,0}
+  %% ESS JCGS v2 :
+  %%\hypersetup{backref,colorlinks=true,pagebackref=true,hyperindex=true}
+  %%\hypersetup{backref,colorlinks=false,pagebackref=true,hyperindex=true}
+\fi
+
+\usepackage{Sweave}
+\begin{document}
+\title{A correction for the LPE statistical test}
+\author{
+        Carl Murie
+        \email{<carl.murie@mcgill.ca>}, \\
+        Robert Nadon
+        \email{<robert.nadon@mcgill.ca>}
+        }
+
+\maketitle
+\tableofcontents
+
+
+\section{Introduction}
+
+ LPEadj is a correction for the LPE statistical test \cite{Jain:2003} which
+ consists of two additions to the LPE method.  The LPE package documentation
+ is still correct with the exception of 
+ the two additions listed below and should be consulted for more information
+ on the LPE method. \\
+\\
+ The correction is in two parts.  See \cite{Mur:2008} for more information on
+ the correction. 
+
+ \begin{enumerate}
+ \item The LPEadj method discontinues the LPE practice of setting all
+   variances below the maximum variance in the ordered distribution of
+   variances to the maximum variance.  In certain cases this practice can set
+   many variances to the maximum and lower the performance of
+   this algorithm.  If the assumption that there are only a few low variances
+   to be adjusted is correct then it may be safe to use this procedure. This
+   option is controlled by the doMax parameter (default is FALSE).
+ \item  The LPEadj method replaces the $\pi/2$ adjustment of the variance
+ with an empirically estimated adjustment based on the sample size of the
+ data.   The empirical adjustment values have been estimated for replicate
+ sizes up to 10. This option is controlled by the doAdj parameter (default is
+ TRUE). 
+ \end{enumerate}
+
+ The top level function LPEadj executes the first and second
+ step by default.  This is the recommended manner in which LPEadj should be
+ run.  One can use steps 1 and 2 independently if desired.   \\ 
+ 
+\section{LPE variance adjustment}
+
+The LPE method pools variance estimates of genes with similar
+intensities in order to gain an improved error estimate and increased
+degrees of freedom.  A calibration 
+curve of variance versus mean intensity is 
+generated for each group and the gene specific median intensity is
+used to obtain the gene's variance estimate from the calibration
+curve.  It
+has been shown that the sampling variability of the median is
+proportionally higher (by $\pi/2$) than that of the mean
+\cite{Moo:1974}.   Accordingly, a multiplicative adjustment of
+$\pi/2$ is applied to the variance estimate obtained from the
+calibration curve for the purpose of statistical testing. \\
+\\
+
+The LPE z-statistic is as follows:
+
+\begin{equation}
+z = \frac{Med_1 - Med_2}{\sigma_{pool}}
+\end{equation}
+
+\noindent
+where
+
+\begin{equation}
+\sigma^2_{pool} = \frac{\pi}{2}(\frac{\sigma^2_1(Med_1)}{n_1} +
+\frac{\sigma^2_2(Med_2)}{n_2})
+\end{equation}
+
+$\sigma^2_i(Med_i)$ are the variances derived from the calibration
+curve using the median of the gene intensities for a particular group.
+$n$ is the number of replicates in the groups (assuming equal sample
+size).  The associated probability of the z-statistic
+under the null hypothesis is calculated by reference to the standard
+normal distribution.
+\par
+
+
+\begin{figure}[tbp]
+\includegraphics[]{fig//MeanMedianVar3.jpg}
+\caption{The ratio of the variance of sampling medians over sampling means
+  across a range of sample sizes.
+  The Sampling variance of mean line is the variance of taking the mean of a
+  random sample from a standard normal distribution.    This line corresponds
+  to the Central  Limit Theorem,
+  which states that the sample variance of a distribution of means
+  is $\sigma^2/N$.  The Sampling variance of median line
+  is the variance of taking the median from the same random samples.
+  The Sampling variance of median/Sampling variance of mean line is the
+  variance of the median divided by 
+  the variance of the mean at each sample size. The sampling was
+  repeated 1000 times for each sample size (ranging from 3 to 1000).}
+\label{fig:Ratio}
+\end{figure}
+
+The Mood \cite{Moo:1974} proof shows that with normal data the ratio of the
+squared standard error of the median relative to that of the mean is
+asymptotically $\pi/2$.
+Figure \ref{fig:Ratio} shows that the ratio
+converges to $\pi/2$ when the sample size is 
+large, around 100,  but is less than $\pi/2$ when the sample sizes are small, 
+from three to ten.  The ratio of variances at small sample sizes also 
+oscillates lower to higher depending on whether the sample size is even or
+odd.  This fluctuation 
+is due to the difference in obtaining the median with even and
+odd sample sizes.  The middle value of the ordered
+distribution is used as the median with odd sample sizes while the mean of
+the two middle values of the ordered distribution is used with even sample
+sizes.   There is higher variability when taking the middle 
+value of a distribution (with odd number of samples) than taking the
+average of the two middle values (with even number of samples).  
+
+
+
+
+\section{Modification of LPE Method}
+
+The use of an empirically estimated variance ratio adjustment, $c_i$, based
+on sample size can correct the bias caused by the $\pi/2$
+adjustment.  The $\pi/2$ term in Equation 1 is replaced by the
+empirically generated ratio of the variance of sampling a median over
+the variance of sampling a mean.  Equation 1 then becomes:  
+
+\begin{equation}
+\sigma^2_{pool} = c_1\frac{\sigma^2_1(Med_1)}{n} +
+c_2\frac{\sigma^2_2(Med_2)}{n}
+\end{equation}
+ 
+
+The parameters, $c_1$ and $c_2$, are the ratio of variances of sampling the
+median and mean based on the number of replicates for each group.   $c_1$ and
+$c_2$ are the adjust1 and adjust2 variables in the calculateLpeAdj function.
+
+\begin{figure}[tbp]
+\centering
+  \includegraphics[]{fig//FPRPvalHist10Reps4.jpg}
+\caption{(a) False positive rates for the LPE and adjusted LPE methods using
+  simulated data with no differentially expressed genes evaluated at p $\le$ .05
+  threshold.  The LPE showed variable and low false positive rates.  In contrast,
+  the adjusted LPE showed appropriate false positive rate for all sample sizes.
+  (b) The adjusted LPE, but not the LPE, shows the theoretically expected
+  uniform p-value distribution.
+  Each data set had 10000 genes with each gene's replicate
+  intensity drawn from a $N(\mu, 0.1)$ distribution.  $\mu$ was drawn from a
+  $N(7,1)$ distribution. } 
+\label{fig:FPR}
+\end{figure}
+
+ 
+
+Figure \ref{fig:FPR} shows that the LPE test has a lower than expected false
+positive rate (FPR) which 
+fluctuates between even and odd sample sizes (average FPR with odd and even
+samples sizes is 0.030 and 0.022 respectively)  in a similar manner as the
+ratio of variances in Figure \ref{fig:Ratio}.  The LPE method also shows a 
+non-uniform p-value distribution with fewer than expected small p-values.
+The $\pi/2$ adjustment increases the variance by an overly large proportion
+and causes the LPE test statistics to be smaller than they should be and
+skews the p-value distribution leftward. 
+In contrast, the adjusted LPE test produced theoretically expected values.
+\par
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[]{fig//HGU95GreyScale1.jpg}
+\caption{P-value histograms and boxplots of FPR, TPR, and pAUC from the
+  LPE and adjusted LPE methods applied to the HGU95 latin square data set.
+  The data were normalized using six different normalization methods
+  (labeled by row). \vspace{-5mm}}
+\label{fig:Power}
+\end{figure}
+
+Figure \ref{fig:Power} summarizes the results of the LPE and adjusted LPE
+methods applied to the HGU95 Affymetrix spike-in data set (www.affymetrx.com).
+The HGU95 data is based on a 14 x 14 Latin Square design of ``spiked-in'' 
+transcripts (14 concentrations per microarray chip x 14 groups) with
+three replicates for each group.  The
+concentrations for the ``spiked-in'' transcripts were doubled for
+each consecutive group (0 and 0.25 to 1024 pM inclusive).  To assess the
+performance of the statistical tests we used the FPR, the true positive rate
+(TPR, which is the proportion of transcripts correctly identified as being
+differentially expressed), and the  
+partial area under the curve (pAUC, which measures the area
+under a Receiver Operator Characteristic curve (ROC) below a false positive
+cutoff of 0.05). The pAUC has a value between 0 (worst performance) and 1 
+(perfect performance).
+\par
+
+
+\section{Example}
+
+The easiest way to apply the LPEadj statistical test is to use the LPEadj
+function. Setting doMax to false (the default value) stops the LPE method
+from setting the variances of low intensity genes to the maximum variance.
+Setting doAdj to true (the default value) makes LPE use a variance adjustment
+based on the number of replicates of each group rather than $\pi/2$.  The
+code will print the values used for the variance adjustment.  The variance
+adjustment values for replicate sizes up to 10 are precalculated 
+within the lpeAdj function.  For example if 
+there are two groups with three replicates each the following line will be
+printed. \\ \\
+
+
+
+<<echo=TRUE, eval=TRUE>>=
+ # Loading the library and null dataset (two groups with three
+ # replicates each).  
+ library(LPEadj)
+ dat <- matrix(rnorm(6000), ncol=6)
+ 
+ # Applying LPE
+ lpe.result <- lpeAdj(dat, labels=c(0,0,0,1,1,1), doMax=FALSE, doAdj=TRUE)
+@ 
+
+If you want more control over low level variables you can call
+calculateLpeAdj directly.  Note that in this case the results of this call
+are the same as the previous call to lpeAdj because the variance adjustment
+values are identical (the variance adjustment values defined in ADJ.VALUES is
+the same as the variance adjustment values defined in lpeAdj).
+
+<<echo=TRUE, eval=TRUE>>=
+# Loading the library and null dataset (two groups with three
+ # replicates each)
+ library(LPEadj)
+ dat <- matrix(rnorm(6000), ncol=6)
+
+ ADJ.VALUES <- c(1, 1, 1.34585905516761 ,1.19363228146169 ,1.436849413109
+                  ,1.289652132873 ,1.47658053092781 ,1.34382984852146
+                  ,1.49972130857404, 1.3835405678718)
+            
+ # calculate base line error distributions
+ var1 <- adjBaseOlig.error(dat[,1:3], setMax1=FALSE, q=.05)
+ var2 <- adjBaseOlig.error(dat[,4:6], setMax1=FALSE, q=.05)
+
+ # The correct variance adjustments can be fetched using the replicate 
+ # number for each group as in index for the ADJ.VALUES vector.
+ # eg: ADJ.VALUES[n] if there are n replicates in a group 
+ results <- calculateLpeAdj(dat[,1:3],dat[,4:6],var1,var2,
+                  probe.set.name=c(1:1000), adjust1=ADJ.VALUES[3],
+                  adjust2=ADJ.VALUES[3])
+@ 
+
+\begin{thebibliography}{10}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{{\tt #1}}\fi
+
+
+\bibitem{Jain:2003}
+Jain et.\ al.
+\newblock {Local-pooled-error test for identifying 
+differentially expressed genes with a small number of replicated
+microarrays},
+\newblock {\em Bioinformatics}, 2003, Vol 19, No. 15,  pp: 1945-1951.
+
+
+\bibitem{Moo:1974}
+   Mood et.\ al.
+\newblock {Introduction to the theory of statistics}
+\newblock{Mcgraw-Hill, New York, 3rd Ed, 1974}
+
+\bibitem{Mur:2008}
+Murie et.\ al.
+\newblock {A correction for estimating error when using the Local Pooled Error
+  statistical test},
+\newblock {\em Bioinformatics}, in press.
+
+\end{thebibliography}
+
+\end{document}

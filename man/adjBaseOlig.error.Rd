@@ -1,0 +1,84 @@
+\name{adjBaseOlig.error}
+\alias{adjBaseOlig.error}
+
+\title{
+ Evaluates LPE variance function of M for quantiles of A within and 
+ experimental condition and then interpolates it for all genes.
+}
+
+\description{
+ Calls adjBaseOlig.error.step1 and adjBaseOlig.error.step2 functions in order to
+ calculate the baseline distribution.
+}
+
+\usage{
+  adjBaseOlig.error(y, stats=median, q=0.01, min.genes.int=10,div.factor=1,
+setMax1=FALSE)
+}
+
+\arguments{
+ \item{y}{y is a preprocessed matrix or data frame of expression intensities in which columns are expression intensities for a particular experimental
+          condition and rows are genes.}
+ \item{stats}{It determines whether mean or median is to be used for the replicates}
+ \item{q}{q is the quantile width; q=0.01 corresponds to 100 quantiles
+ 	  i.e. percentiles. Bins/quantiles have equal number of genes and
+ 	  are split according to the average intensity A.}
+ \item{min.genes.int}{Determines the minimum number of genes in a subinterval for selecting the adaptive intervals.}
+ \item{div.factor}{Determines the factor by which sigma needs to be divided for
+   selecting adaptive intervals.}
+  \item{setMax1}{If T then all variances below the max variance in the
+    ordered distribution of variances are set to the maximum
+    variance. If F then variances are left as is (recommended)}
+}
+ 
+\value{
+  Returns object of class baseOlig comprising a data frame with 2 columns: A
+  and var M, and rows for each quantile specified. The A column contains
+  the median values of A for each quantile/bin and the M columns contains 
+  the pooled variance of the replicate chips for genes within each quantile/bin.
+}
+
+\author{Carl Murie \email{carl.murie@mcgill.ca},
+        Nitin Jain \email{nitin.jain@pfizer.com} }
+
+\references{
+	J.K. Lee and M.O.Connell(2003). \emph{An S-Plus library for the analysis of differential expression}. In The Analysis of Gene Expression Data: Methods and Software. Edited by G. Parmigiani, ES Garrett, RA Irizarry ad SL Zegar. Springer, NewYork.
+
+	Jain et. al. (2003) \emph{Local pooled error test for identifying
+      differentially expressed genes with a small number of replicated microarrays}, Bioinformatics, 1945-1951.
+
+Jain et. al. (2005) \emph{Rank-invariant resampling based estimation of false discovery rate for analysis of small sample microarray data}, BMC Bioinformatics, Vol 6, 187.
+
+}
+
+
+\seealso{
+  \code{\link{lpeAdj}}
+}
+
+\examples{
+
+  # Loading the data from the LPE library
+  data(Ley)
+  
+  dim(Ley)
+  # Gives 12488 by 7
+  Ley[1:3,]
+  # Returns 
+  #       ID           c1   c2   c3    t1    t2    t3
+  # 1  AFFX-MurIL2_at 4.06 3.82 4.28 11.47 11.54 11.34
+  # 2 AFFX-MurIL10_at 4.56 2.79 4.83  4.25  3.72  2.94
+  # 3  AFFX-MurIL4_at 5.14 4.10 4.59  4.67  4.71  4.67
+
+  Ley[,2:7] <- preprocess(Ley[,2:7],data.type="MAS5")
+  
+  subset <- 1:1000
+  Ley.subset <- Ley[subset,]
+  
+  # Finding the baseline distribution of subset of the data
+  # condition one (3 replicates)
+  var.1 <- adjBaseOlig.error(Ley.subset[,2:4], q=0.01, setMax1=FALSE)
+  dim(var.1)
+  # Returns a matrix of 1000 by 2 (A,M) format, equal to the nrow(data) 
+}
+\keyword{methods} % from KEYWORDS.db

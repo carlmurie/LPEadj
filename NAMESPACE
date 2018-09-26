@@ -1,0 +1,6 @@
+importFrom(LPE, am.trans, fixbounds.predict.smooth.spline, lpe,
+           n.genes.adaptive.int)
+importFrom(stats, median, pnorm, quantile, smooth.spline, var)
+
+export(adjBaseOlig.error, adjBaseOlig.error.step1, adjBaseOlig.error.step2,
+       calculateLpeAdj, lpeAdj)

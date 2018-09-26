@@ -1,0 +1,24 @@
+Package: LPEadj
+Version: 1.50.0
+Date: 2018-09-17
+Title: A Correction of the Local Pooled Error ('LPE') Method to Replace
+        the Asymptotic Variance Adjustment with an Unbiased Adjustment
+        Based on Sample Size
+Authors@R: c(person("Carl", "Murie", email="carl.murie@gmail.com", role=c("aut", "cre")),
+           person("Robert", "Nadon",  email="robert.nadon@mcgill.ca", role="aut"))
+Author: Carl Murie [aut, cre],
+        Robert Nadon [aut]
+Maintainer: Carl Murie <carl.murie@gmail.com>
+Depends: LPE
+Imports: stats
+Description: Two options are added to the 'LPE' algorithm. The original
+        'LPE' method sets all variances below the max variance in the
+        ordered distribution of variances to the maximum variance. in
+        'LPEadj' this option is turned off by default.  The second option
+        is to use a variance adjustment based on sample size rather
+        than pi/2.  By default the 'LPEadj' uses the sample size based
+        variance adjustment.
+License: LGPL
+Repository: CRAN
+NeedsCompilation: no
+Packaged: 2018-04-30 22:57:07 UTC; biocbuild
